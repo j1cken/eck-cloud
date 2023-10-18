@@ -1,0 +1,17 @@
+variable "demo_name" {
+  description = "Used as prefix for the GCP resource names"
+  type        = string
+  default     = "my-eck-aks-demo"
+}
+
+variable "azure_resource_name" {
+  description = "Name of existing azure resource name"
+  type        = string
+  default     = "my-azure-resource-name"
+
+variable "domain_name_label" {
+  description = "DNS prefix used to associate the auto-generated hostname with the ingress controller"
+  type        = string
+  default     = "myazurednslabel"
+}
+}

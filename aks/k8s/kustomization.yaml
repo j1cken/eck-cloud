@@ -1,0 +1,25 @@
+resources:
+
+  # CRDs
+  - https://download.elastic.co/downloads/eck/2.9.0/crds.yaml
+
+  # Operator including RBAC rules
+  - https://download.elastic.co/downloads/eck/2.9.0/operator.yaml
+
+  # Clusterissuer
+  - clusterissuer.yaml
+
+  # Cert-manager
+  - https://github.com/cert-manager/cert-manager/releases/download/v1.13.1/cert-manager.yaml
+
+  # Elasticsearch
+  - elasticsearch.yaml
+
+  # Kibana
+  - kibana.yaml
+  
+  # Ingress
+  - ingress.yaml
+
+  # Fleet
+  - fleet-server-agent.yaml

@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx 
+    cert-manager.io/cluster-issuer: letsencrypt
+    cert-manager.io/acme-challenge-type: http01
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: eck
+
+# CHANGE spec.tls.hosts and spec.rules.host
+spec:
+  tls:
+  - hosts: 
+    - mydnslabelname.myregion.cloudapp.azure.com 
+    secretName: kibana-tls-secret-key
+  rules:
+    - host: 'mydnslabelname.myregion.cloudapp.azure.com'
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kibana-kb-http
+                port:
+                  number: 5601 

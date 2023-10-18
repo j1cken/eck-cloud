@@ -1,0 +1,17 @@
+variable "demo_name" {
+  description = "Used as prefix for the GCP resource names"
+  type        = string
+  default     = "my-eventhub-demo"
+}
+
+variable "azure_resource_group_name" {
+  description = "Name of existing azure resource name"
+  type        = string
+  default     = "my-resource-group"
+}
+
+variable "storage_name" {
+  description  = "Name of the aks storage" 
+  type        = string
+  default     = "my-aks-storage-name"
+}

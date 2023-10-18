@@ -1,0 +1,19 @@
+resources:
+
+  # Cluster issuer
+  - clusterissuer.yaml
+
+  # Ingress
+  - ingress.yaml
+
+  # Elasticsearch
+  - elasticsearch.yaml
+
+  # Kibana
+  - kibana.yaml
+
+  # Fleet
+  - fleet-server-agent.yaml
+
+  # Elastic Agent
+  - elastic-agent.yaml
