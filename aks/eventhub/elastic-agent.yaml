@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elastic-agent
+  labels:
+    app: elastic-agent
+spec:
+  selector:
+    matchLabels:
+      app: elastic-agent
+  template:
+    metadata:
+      labels:
+        app: elastic-agent
+    spec:
+      containers:
+        - name: elastic-agent
+          image: docker.elastic.co/beats/elastic-agent:8.10.2
+          env:
+            - name: FLEET_ENROLL
+              value: "1"
+            - name: FLEET_INSECURE
+              value: "true"
+            - name: FLEET_URL
+              value: "https://fleet-server-agent-http.default.svc:8220"
+            - name: FLEET_ENROLLMENT_TOKEN
+              valueFrom:
+                secretKeyRef: 
+                  name: fleet-token
+                  key: token
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          securityContext:
+            runAsUser: 0
+          resources:
+            limits:
+              memory: 700Mi
+            requests:
+              cpu: 100m
+              memory: 400Mi
+          volumeMounts:
+            - name: elastic-agent-state
+              mountPath: /usr/share/elastic-agent/state
+      volumes:
+        - name: elastic-agent-state
+          hostPath:
+            path: /var/lib/elastic-agent-managed/kube-system/state
+            type: DirectoryOrCreate

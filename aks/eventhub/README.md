@@ -34,74 +34,66 @@ For this demo, we are gathering K8s logs from an AKS cluster. Too keep things si
 
 ### 2.1 Create Diagnostic Settings
 
-For demonstration purposes, we're creating the Diagnostic Setting manually over the Azure console.
+For demonstration purposes, we're creating the Diagnostic Setting manually over the Azure console:
 
- * Go to the resource to monitor (the AKS cluster)
- * Go to "Monitoring" --> "Diagnostic Settings" 
- * Create a new Diagnostic Setting
- * Select all "Kubernetes" categories
- * In the "Destination details", select "Stream to an event hub"
- * Provide the Subscription, the Event hub namespace, the Event hub name and the Event hub policy name
- * Save and exit 
+ * For the AKS cluster, create a new Diagnostic Setting under "Monitoring"
+ * As the data to be shipped, select all "Kubernetes" categories
+ * Configure the destination so the data is streamed to an event hub, providing the subscription, event-hub namespace, event-hub name and event-hub policy name
 
-### 2.2 Modify Elastic Agent endpoint
+### 2.2 Add Elastic Integration 
 
-Only needed if the elastic cluster is deployed in the same K8s cluster as the agent, as is the case here. Otherwise, TLS must be configured, and all the services exposed accordingly.
+Create an Azure Logs integration in Kibana. You'll need following parameters of the Azure resources created before:
 
-Since in this demo the elastic agent and the elasticsearch cluster are running in the same AKS cluster, to simplify TLS configuration we deactivate TLS for the communication between the agents and elasticsearch. Since we have fleet-managed agents, this configuration is not up to the agent but up to Kibana and Fleet. Go to the kibana manifest:
-```
-vi kibana.yaml
-```
-Make sure the endpoint for elasticsearch is using http and not https:
+ * EventHub name
+ * EventHub namespace
+ * Connection String (primary key) for the EventHub namespace
+ * Storage Account
+
+In the integration configuration, "Collect events from Event Hub" needs to be activated. 
+
+Create a new agent policy for this integration, then proceed to the elastic agent installation.
+ 
+### 2.3 Note about the Elastic Agent manifest 
+
+In this demo, it's foreseen that the agent is deployed in the same K8s cluster as Elastic, as is the case in this demo, so TLS is deactivated for the communication between the agent and Elasticsearch. I intend to improve this to have TLS correclty configured. The sames apply to the communication between the agent and fleet: even if it's TLS encrypted, the certificate check on the agent side is deactivated. 
+
+_NOTE: I intend to improve that somewhen._
+
+The elasticsearch endpoint and its protocol (http), as well as the fleet server endpoint, are defined in the following two lines in the [kibana manifest](kibana.yml):
 ```
 config:
   xpack.fleet.agents.elasticsearch.hosts: ["http://elasticsearch-es-http.default.svc:9200"]
   xpack.fleet.agents.fleet_server.hosts: ["https://fleet-server-agent-http.default.svc:8220"]
 ```
 
-The communication between the agents and fleet is TLS encrypted. However, the certificate check is deactivated, so the default self-signed certificated configured for fleet works for the communication. 
+### 2.4 Install Elastic Agent
 
-_NOTE: this is not that nice actually. It would be better to expose both the elasticsearch and fleet server services externally, providing trusted TLS certificates issued by Let's Encrypt, configuring the ingress accordingly, same I did with Kibana_
+Once the bit about TLS is clarified, let's proceed to deploy the [elastic agent](elastic-agent.yaml).
 
-### 2.3 Add Elastic Integration 
+As mentioned before, to keep thing simple, we're installing the agent in the same AKS cluster where ECK is running and which we want to monitor. 
 
-Go to your Kibana to create the Azure Logs integration.
+Before deploying the agent, we need to generate a secret with the fleet enrollment token:
+```
+kubectl create secret generic fleet-token --from-literal=token="<FLEET_TOKEN>"
+```
+You can find the fleet enrollment token in Kibana, under "Fleet" and then "Settings".
 
- * Go to "Integrations"
- * Add an "Azure Logs integration"
- * As the Integration name, write "aks-logs-integration"
- * As Event Hub, write the name of the one we created before
- * As the Connection String, paste the one you'll find under the Event Hub Namespace, in the Azure Console, when selecting "Shared access policies", then selecting the authorization rule created before. From there you can copy the "Primary key".
- * As "Storage Account", write the name the one created before
- * The "Storage Account Key" can be found in the Azure Console, under the Storage Account "Access keys". There you can copy the "key 1"
- * Further down, select "Collect events from Event Hub", "Azure Event Hub Input" and "Parse azure message"
- * In the section "Where to add this integration?", select "New Hosts" and "Create agent policy". Name it "aks-logs-agent-policy".
- * Click on "Save and Continue". When prompted, select "Add Elastic Agent to your hosts"
-
-### 2.4 Add and Install Elastic Agent
-
-We are going to install the elastic agent in K8s via manifest. Too keep thing simple, we're installing the agent in the same AKS cluster where ECK is running, and which we want to monitor. 
-
-In the wizard for the agent installation, in the second step "Install Elastic Agent on your host", go to"Kubernetes" and copy-paste the sample manifest. 
-
-Paste the copied manifest in a new file elastic-agent.yaml and make the following modifications:
+Deploy the [elastic agent](elastic-agent.yaml):
+```
+kubectl apply -f elastic-agent.yaml
+```
+Two remarks about the elastic agent manifest:
  
- * Deploy the agent as a StatefulSet instead of a DaemonSet
- * Modify the namespace for the StatefulSet and all related resources (ServiceAccount, etc) in the manifest to "default"
-
-Deploy the manifest:
-```
-kubectl apply -f agent.yaml
-```
+ * I'm not using ECK for deploying the agent, even if the CRD is deployed in the cluster and an agent resource is available. The reason is that the CR installs as a DaemonSet, which makes a lot of sense for a K8s integration, where one agent must be installed on each K8s worker node, but makes little sense for the EventHub use case
+ * For an Elastic Integration featuring Azure Logs and the EventHub, the recommendation is to have one agent for each EventHub, scaling to more replicas if the load requires it. In this case, in order for each agent to properly handle its own state, the best option seems to be to deploy the agent as a StatefulSet
 
 After a couple of seconds, in the wizard you'll see "Agent enrollment confirmed", meaning the agent we just deployed was able to connect to our Fleet Server. 
 
 Shortly afterwards, you should get the notification that the agent is sending data.
 
 Go to Discover and filter the agent name to be the elastic agent deployed for the aks-logs integration. You'll see the data being sent by AKS to the EventHub, which is pulled by the agent and send to Elasticsearch:
--------                             ------------     -----------------     -----------
+
 | AKS | --- DiagnosticSettings ---> | EventHub | --> | Elastic Agent | --> | Elastic |
--------                             ------------     -----------------     -----------
 
  
 
