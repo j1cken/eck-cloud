@@ -53,13 +53,11 @@ In the integration configuration, "Collect events from Event Hub" needs to be ac
 
 Create a new agent policy for this integration, then proceed to the elastic agent installation.
  
-### 2.3 Note about the Elastic Agent manifest 
+### 2.3 Note about TLS 
 
-In this demo, it's foreseen that the agent is deployed in the same K8s cluster as Elastic, as is the case in this demo, so TLS is deactivated for the communication between the agent and Elasticsearch. I intend to improve this to have TLS correclty configured. The sames apply to the communication between the agent and fleet: even if it's TLS encrypted, the certificate check on the agent side is deactivated. 
+In this demo, it's foreseen that the agent is deployed in the same K8s cluster as Elastic, therefore TLS is deactivated for the communication between the agent and Elasticsearch, since the elasticsearch service is not exposed outside the cluster. The sames apply to the communication between the agent and fleet: even if in this case it is TLS encrypted, the certificate check on the agent side is deactivated. 
 
-_NOTE: I intend to improve that somewhen._
-
-The elasticsearch endpoint and its protocol (http), as well as the fleet server endpoint, are defined in the following two lines in the [kibana manifest](kibana.yml):
+The elasticsearch endpoint and its protocol (http), as well as the fleet server endpoint, are defined in the following two lines in the [kibana manifest](../k8s/kibana.yml):
 ```
 config:
   xpack.fleet.agents.elasticsearch.hosts: ["http://elasticsearch-es-http.default.svc:9200"]
@@ -70,7 +68,7 @@ config:
 
 Once the bit about TLS is clarified, let's proceed to deploy the [elastic agent](elastic-agent.yaml).
 
-As mentioned before, to keep thing simple, we're installing the agent in the same AKS cluster where ECK is running and which we want to monitor. 
+As mentioned before, to keep things simple, we're installing the agent in the same AKS cluster where ECK is running and which we want to monitor. 
 
 Before deploying the agent, we need to generate a secret with the fleet enrollment token:
 ```
