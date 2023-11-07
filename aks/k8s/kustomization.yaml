@@ -23,3 +23,6 @@ resources:
 
   # Fleet
   - fleet-server-agent.yaml
+
+  # Elastic Agent
+  - elastic-agent.yaml
