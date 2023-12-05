@@ -1,3 +1,4 @@
+__This is not an Elastic official documentation, just my notes and observations during the deployment of a small ECK cluster on AKS.__
 
 ## 0. Prerequisites
 
