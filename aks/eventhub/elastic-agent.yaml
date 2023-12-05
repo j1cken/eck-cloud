@@ -13,6 +13,7 @@ spec:
       labels:
         app: elastic-agent
     spec:
+      serviceAccountName: elastic-agent
       containers:
         - name: elastic-agent
           image: docker.elastic.co/beats/elastic-agent:8.10.2
