@@ -47,8 +47,11 @@ spec:
           volumeMounts:
             - name: elastic-agent-state
               mountPath: /usr/share/elastic-agent/state
-      volumes:
-        - name: elastic-agent-state
-          hostPath:
-            path: /var/lib/elastic-agent-managed/kube-system/state
-            type: DirectoryOrCreate
+  volumeClaimTemplates:
+  - metadata:
+      name: elastic-agent-state
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 128Mi
