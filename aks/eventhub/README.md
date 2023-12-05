@@ -25,8 +25,8 @@ Following Azure resources are configured for deployment via Terraform:
  * EventHub Namespace
  * EventHub
  * Authorization Rule for the Elastic Agent to pull data from the EventHub (permission: send)
- * StorageAccount, to be used by the Elastic Agent to store the state (is this accurate?)
- * A container inside the Storage Account, to be used by the Elastic Agent to store its state
+ * StorageAccount, to be used by the Elastic Agent
+ * A container inside the Storage Account, to be used by the Elastic Agent
 
 ## 2. Azure Resource to monitor
 
