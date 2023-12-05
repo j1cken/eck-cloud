@@ -1,5 +1,6 @@
-_Disclaimer: this is NOT an official documentation, just my notes from my own experiments. 
-See the bottom of this page for links to the Elastic Documentation._
+_Disclaimer: this is NOT an official documentation, just my notes from my own experiments._ 
+
+_See the bottom of this page for links to the Elastic Documentation._
 
 ## The Small Event-Hub Demo
 
@@ -95,9 +96,9 @@ Go to Discover and filter the agent name to be the elastic agent deployed for th
 
 | AKS | --- DiagnosticSettings ---> | EventHub | --> | Elastic Agent | --> | Elastic |
 
-References - Elastic Documentation: 
-[Monitor Microsoft Azure with Elastic Agent](https://www.elastic.co/guide/en/observability/current/monitor-azure-elastic-agent.html)
-[Run Elastic Agent on K8s managed by Fleet](https://www.elastic.co/guide/en/fleet/current/running-on-kubernetes-managed-by-fleet.html)
-[Choose the Deployment Model](https://github.com/elastic/cloud-on-k8s/blob/main/docs/orchestrating-elastic-stack-applications/agent-fleet.asciidoc#customize-elastic-agent-configuration)
+__References - Elastic Documentation:__ 
+ * [Monitor Microsoft Azure with Elastic Agent](https://www.elastic.co/guide/en/observability/current/monitor-azure-elastic-agent.html)
+ * [Run Elastic Agent on K8s managed by Fleet](https://www.elastic.co/guide/en/fleet/current/running-on-kubernetes-managed-by-fleet.html)
+ * [Choose the Deployment Model](https://github.com/elastic/cloud-on-k8s/blob/main/docs/orchestrating-elastic-stack-applications/agent-fleet.asciidoc#customize-elastic-agent-configuration)
 
 
