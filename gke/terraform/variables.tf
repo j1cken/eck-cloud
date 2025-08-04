@@ -32,3 +32,17 @@ variable "dns_managed_zone" {
   description = "Managed zone to host the DNS record"
   type        = string
 }
+variable "dns_managed_zone_name" {
+  description = "Name of the Managed zone"
+  type        = string
+}
+
+variable "labels" {
+  description = "Labels for the cluster"
+  type        = any
+}
+
+variable "number_of_nodes" {
+  description = "The number of nodes per zone in the Kubernetes cluster."
+  type        = number
+}

@@ -2,7 +2,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "4.27.0"
+      version = "6.46.0"
     }
   }
   required_version = ">= 0.14"
@@ -20,14 +20,14 @@ provider "google" {
 ###############
 
 resource "google_compute_network" "vpc" {
-  name                    = "${var.demo_name}-vpc"
-#  name                    = "eva-eck-vpc"
+  name = "${var.demo_name}-vpc"
+  #  name                    = "eva-eck-vpc"
   auto_create_subnetworks = "false"
 }
 
 # Subnet
 resource "google_compute_subnetwork" "subnet" {
-#  name          = "eva-eck-subnet"
+  #  name          = "eva-eck-subnet"
   name          = "${var.demo_name}-subnet"
   region        = var.gcp_region
   network       = google_compute_network.vpc.name
@@ -38,13 +38,13 @@ resource "google_compute_subnetwork" "subnet" {
 # Public static IP #
 ####################
 resource "google_compute_address" "default" {
-#  name   = "eva-eck-static-ip-address"
+  #  name   = "eva-eck-static-ip-address"
   name   = "${var.demo_name}-static-ip-address"
   region = var.gcp_region
 }
 
 output "ingress_static_ip" {
-  value = google_compute_address.default.address
+  value       = google_compute_address.default.address
   description = "Static IP address for exposing Kibana"
 }
 
@@ -56,12 +56,14 @@ output "ingress_static_ip" {
 data "google_client_config" "default" {}
 
 resource "google_container_cluster" "primary" {
-#  name     = "eva-eck-gke"
-  name     = "${var.demo_name}-gke"
-  location = var.gcp_location
+  #  name     = "eva-eck-gke"
+  name               = "${var.demo_name}-gke"
+  location           = var.gcp_region
   initial_node_count = 1
-  network    = google_compute_network.vpc.name
-  subnetwork = google_compute_subnetwork.subnet.name
+  network            = google_compute_network.vpc.name
+  subnetwork         = google_compute_subnetwork.subnet.name
+
+  resource_labels = jsondecode(var.labels)
 
   # Manage the node pool separately
   remove_default_node_pool = true
@@ -71,9 +73,8 @@ resource "google_container_cluster" "primary" {
 resource "google_container_node_pool" "primary_nodes" {
   name       = google_container_cluster.primary.name
   location   = var.gcp_region
-  # TODO: if I provide a location instead of a region, maybe there will be only 1 node?
   cluster    = google_container_cluster.primary.name
-  node_count = 1
+  node_count = var.number_of_nodes
 
   node_config {
     oauth_scopes = [
@@ -83,7 +84,7 @@ resource "google_container_node_pool" "primary_nodes" {
 
     # preemptible  = true
     machine_type = "n1-standard-2"
-    tags         = ["gke-node", ""${var.demo_name}-gke"]
+    tags         = ["gke-node", "${var.demo_name}-gke"]
     metadata = {
       disable-legacy-endpoints = "true"
     }
@@ -96,7 +97,7 @@ output "kubernetes_cluster_name" {
 }
 
 output "kubernetes_cluster_region" {
-  value       = var.gcp_region 
+  value       = var.gcp_region
   description = "GKE Cluster Region"
 }
 
@@ -108,10 +109,13 @@ output "kubernetes_cluster_host" {
 ################
 # DNS A Record #
 ################
+data "google_dns_managed_zone" "gke_zone" {
+  name = var.dns_managed_zone_name # The name of the existing managed zone
+}
 
 resource "google_dns_record_set" "a" {
+  managed_zone = data.google_dns_managed_zone.gke_zone.name
   name         = var.dns_hostname
-  managed_zone = var.dns_managed_zone
   type         = "A"
   ttl          = 300
   rrdatas      = [google_compute_address.default.address]
